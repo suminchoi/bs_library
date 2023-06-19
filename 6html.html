@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title> 부산광역시 도서관 한눈에 보기 </title>
+    <script type = "text/javascript" src = "https://code.jquery.com/jquery-3.7.0.min.js"> </script>
+    
+    <script>
+    	var info = [];
+    	$.getJSON('https://csm6buc.s3.ap-northeast-2.amazonaws.com/6_lib_list3.json', function (data) {
+    		$.each(data, function (i, item){
+    			info.push(item.name);
+    			info.push(item.juso);
+    			info.push(item.tel);
+    			info.push(item.web);
+    			info.push(item.lat);
+    			info.push(item.lng);
+    		});
+    	});
+    </script>
+    
+    <style>
+      div.left {
+        width: 70%;
+        float: left;
+        box-sizing: border-box;
+      }
+      div.right {
+        width: 30%;
+        float: right;
+        box-sizing: border-box;
+        padding : 50px;
+      }
+    </style>
+</head>
+
+<body>
+	<div class = 'left'>
+	
+		<!--<script src="https://sdk.amazonaws.com/js/aws-sdk-2.119.0.min.js"></script> --> 
+		<h1> 부산광역시 도서관 한눈에 보기 </h1>
+		<div id="map" style="width:100%; height:500px;"></div>	
+		<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=fd349bd4d2766ccf4dd39a47c6ff110a"></script>
+											<!-- 여기 https:부분 지우면 됨 -->
+		<script>
+		var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+		    mapOption = { 
+		        center: new kakao.maps.LatLng(35.157690, 129.059151), // 지도의 중심좌표
+		        level: 7 // 지도의 확대 레벨
+		    };	
+		// 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
+		var map = new kakao.maps.Map(mapContainer, mapOption); 
+		
+		for (var i = 0; i<info.length; i++) {
+			if (i % 6 == 0) {
+				var markerPosition  = new kakao.maps.LatLng(info[i+4], info[i+5]); 			
+				// 마커를 생성합니다
+				var marker = new kakao.maps.Marker({
+				    position: markerPosition,				    
+				});
+				
+				// 마커가 지도 위에 표시되도록 설정합니다
+				marker.setMap(map);
+				
+				var iwPosition = new kakao.maps.LatLng(info[i+4], info[i+5]); //인포윈도우 표시 위치입니다
+				
+				//document.write(info[i]);
+				
+				// 마커를 클릭했을 때 마커 위에 표시할 인포윈도우를 생성합니다
+				var iwContent = (info[i]); // 인포윈도우에 표출될 내용으로 HTML 문자열이나 document element가 가능합니다
+				var	iwPosition = new kakao.maps.LatLng(info[i+4], info[i+5]);
+				
+				var hContent = (info[i]);				
+				    
+				// 인포윈도우를 생성합니다
+				var infowindow = new kakao.maps.InfoWindow({
+					position : iwPosition,
+				    content : iwContent
+				});
+				    
+				kakao.maps.event.addListener(marker,'mouseover',makeOverListener(map,marker,infowindow));
+	            kakao.maps.event.addListener(marker,'mouseout',makeOutListener(infowindow));
+	            // 내만코
+	            kakao.maps.event.addListener(marker,'click',makeClickListener(infowindow, info[i], info[i+1], info[i+2], info[i+3]));
+	             
+				// 인포윈도우 여는 함수
+	             function makeOverListener(map,marker,infowindow){
+	                 return function(){
+	                    infowindow.open(map,marker);
+	                 };
+	              }//info open
+	              
+	              //인포윈도우 닫는 함수
+	              function makeOutListener(infowindow){
+	                 return function(){
+	                    infowindow.close();
+	                 };
+	              }//info close
+	              
+	              function makeClickListener(infowindow, LibraryName, LibraryJuso,  LibraryTel, LibraryWeb) {
+	            	  return function() {
+	            		  document.getElementById("id1").textContent = "도서관 이름 : " + LibraryName;
+	            		  document.getElementById("id11").textContent = "주소 : " + LibraryJuso;
+	            		  document.getElementById("id3").textContent = "도서관 전화번호 : " + LibraryTel;
+	            		  document.getElementById("id4").textContent = "홈페이지 : " + LibraryWeb;
+	            		  
+	            		  document.getElementById("pw").value = LibraryName; // 마커 클릭시 만들어둔 table의 도서관 이름이 바뀌도록 값 받아옴
+	            	  }
+	              }
+			} //if clpse
+		} //for close
+		
+		</script>
+	</div>
+	
+	<div class = 'right'>
+		<h2 id = "id1"> </h2>
+		<h2 id = "id11"> </h2>
+		<h2 id = "id3"> </h2>
+		<h5 id = "id4"> </h5>
+		<h6> ++++++++++++++++ 간단 후기 남기기 ++++++++++++++++ </h6>
+		
+		<div id="wrap">
+			<table id="review_table">
+		      <tbody>
+		        <tr>
+		            <td class="left_box"><label for="">작성자명</label></td>
+		            <td class="input_box"><input type="text" id="name" name="name" /></td>
+		        </tr>
+		        <tr>
+		            <td class="left_box"><label for="">도서관명</label></td>
+		            <td id="id2"><input type="text" id="pw" name="pw"/></td>
+		        </tr>
+		        <tr>
+		            <td class="left_box"><label for="">간단후기</label></td>
+		            <td class="input_box"><input type="text" id="content" name="content" /></td>
+		        </tr>
+		      </tbody>
+		    </table>
+		    
+		    <input type="button" id="enter" value="작성 완료"/>
+		  </div>
+	  	
+		
+		
+		<script type="text/javascript">
+		    var API_URL = 'https://s8dwrdbh1j.execute-api.ap-northeast-2.amazonaws.com/sumin_rev/entries';
+		    // APIgateway배포 후 entries에서 받은 url호출 링크 넣어줌
+		    	
+		    $(document).ready(function () {
+		
+		      $('#enter').on('click', function () {
+		        $.ajax({
+		          type: 'POST',   //API Gateway를 만들때, POST로 만들었으므로 타입을 POST로 지정
+		          url: API_URL,
+		          data: JSON.stringify({
+		            "name": $('#name').val(),
+		            "pw": $('#pw').val(),
+		            "content": $('#content').val()
+		          }),
+		          contentType: "application/json",
+		          //API Gateway 설정에서 매핑 템플릿을 설정하였으므로 그 이름과 동일하게 씀
+		
+		          success: function (data) {
+		            location.reload();
+		            alert('작성 완료!');
+		          }
+		        });
+		      });
+		    });
+		  </script>
+	  </div>
+</body>
+</html>
